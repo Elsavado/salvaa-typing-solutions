@@ -1,51 +1,87 @@
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function runAutoTyper() {
-    console.log("Reading text package properties...");
+    console.log("Analyzing typing page architecture...");
+
+    // ==========================================
+    // 1. DYNAMIC TEXT IDENTIFICATION
+    // ==========================================
+    let textToType = "";
     
-    let passageElement = document.querySelector('p.font-mono');
-    if (!passageElement) {
-        alert("Could not locate passage element ('p.font-mono') on this page!");
+    // Check Option A: Modern letter-by-letter span structures (e.g., typing.com)
+    const activeLetters = document.querySelectorAll('.letter, .word span, .screen-reader-text');
+    
+    if (activeLetters.length > 0) {
+        textToType = Array.from(activeLetters).map(el => el.textContent).join('');
+    } else {
+        // Check Option B: Legacy paragraph structures (e.g., stellarstuffing)
+        const passageElement = document.querySelector('p.font-mono, .typing-area, [data-test-id="typing-wrapper"]');
+        if (passageElement) {
+            textToType = passageElement.innerText;
+        }
+    }
+
+    if (!textToType) {
+        alert("Could not dynamically extract the text block from this webpage layout!");
         return;
     }
+
+    // ==========================================
+    // 2. CHOOSE TARGET & SIMULATE FOCUS
+    // ==========================================
+    // Check if there is a direct input/textarea area on screen
+    let inputBox = document.querySelector('textarea[data-slot="textarea"], input[type="text"], textarea');
     
-    const textToType = passageElement.innerText;
-    let inputBox = document.querySelector('textarea[data-slot="textarea"]');
-    if (!inputBox) {
-        alert("Could not locate input arena container ('textarea')!");
-        return;
-    }
-    
-    inputBox.value = "";
-    inputBox.focus();
+    // Fall back to active element or body if a direct text field doesn't exist
+    const inputTarget = inputBox || document.activeElement || document.body;
+    inputTarget.focus();
     await sleep(500);
 
-    // Read the passed speed selection or fall back safely to 72 WPM if missing
+    // ==========================================
+    // 3. CALIBRATE HUMAN CADENCE
+    // ==========================================
     const chosenWPM = window.TargetBotWPM || 72;
-    
-    // Formula math: 1 WPM is roughly 5 characters. 
-    // 60,000 milliseconds / (WPM * 5) gives the average exact time delay per character.
     const calculatedBaseDelay = 60000 / (chosenWPM * 5);
     
-    console.log(`Calibrating auto-keystrokes to match a natural ${chosenWPM} WPM speed layout...`);
+    console.log(`Injecting text sequence at a calibrated ${chosenWPM} WPM speed cadence...`);
 
     for (let i = 0; i < textToType.length; i++) {
         const char = textToType[i];
         
-        inputBox.value += char;
-        inputBox.dispatchEvent(new Event('input', { bubbles: true }));
+        // Setup standardized keyboard data packets
+        const eventConfig = {
+            key: char,
+            char: char,
+            keyCode: char.charCodeAt(0),
+            which: char.charCodeAt(0),
+            bubbles: true,
+            cancelable: true
+        };
 
-        // Introduce a +/- 20% random swing to the calculated baseline to keep it looking human
+        // EVENT ROADWAY 1: Dispatch hardware events for modern JavaScript listener frameworks
+        inputTarget.dispatchEvent(new KeyboardEvent('keydown', eventConfig));
+        inputTarget.dispatchEvent(new KeyboardEvent('keypress', eventConfig));
+        
+        // EVENT ROADWAY 2: Alter physical value properties for classic standard inputs
+        if (inputTarget.tagName === 'INPUT' || inputTarget.tagName === 'TEXTAREA') {
+            inputTarget.value += char;
+            inputTarget.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        inputTarget.dispatchEvent(new KeyboardEvent('keyup', eventConfig));
+
+        // ==========================================
+        // 4. PRESERVE ORIGINAL ACCENT BREAKS
+        // ==========================================
         const varianceRange = calculatedBaseDelay * 0.2;
         let randomDelay = calculatedBaseDelay + (Math.random() * (varianceRange * 2) - varianceRange);
         
-        // Contextual Human Accent Breaks
         if (char === ' ') {
-            randomDelay += (calculatedBaseDelay * 0.3); // Minor physical spacebar bounce reset pause
+            randomDelay += (calculatedBaseDelay * 0.3); 
         } else if (char === '.' || char === ',' || char === '?' || char === '!') {
-            randomDelay += Math.floor(Math.random() * 150) + 100; // Sentence-ending comprehension pause
+            randomDelay += Math.floor(Math.random() * 150) + 100; 
         } else if (char === char.toUpperCase() && char !== char.toLowerCase()) {
-            randomDelay += (calculatedBaseDelay * 0.15); // Artificial physical 'Shift' key delay adjustment
+            randomDelay += (calculatedBaseDelay * 0.15); 
         }
 
         await sleep(randomDelay);
@@ -55,4 +91,3 @@ async function runAutoTyper() {
 }
 
 runAutoTyper();
-
