@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Salvaa Solutions",
+  "version": "1.0",
+  "description": "Premium human-cadence text automation tool configured at 70-75 WPM.",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
