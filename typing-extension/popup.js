@@ -6,27 +6,20 @@ slider.addEventListener('input', () => {
   valueDisplay.textContent = slider.value;
 });
 
+// A single, clean event listener to handle everything in order
 document.getElementById('startBtn').addEventListener('click', async () => {
   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const selectedWPM = parseInt(slider.value);
   
-  // Inject the speed choice directly into the active browser tab
-  chrome.scripting.executeScript({
+  // Step 1: Inject the speed choice directly into the active browser tab
+  await chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    func: runAutoTyperWithSpeed,
-    args: [selectedWPM] // Passes the slider speed into the function argument below
+    func: (targetWPM) => { window.TargetBotWPM = targetWPM; },
+    args: [selectedWPM]
   });
-});
 
-// This wrapper acts as our script bundle injector
-function runAutoTyperWithSpeed(targetWPM) {
-    window.TargetBotWPM = targetWPM;
-}
-
-// Trigger content script logic right after passing variables
-document.getElementById('startBtn').addEventListener('click', async () => {
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  chrome.scripting.executeScript({
+  // Step 2: Trigger content script logic immediately afterward
+  await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     files: ['content.js']
   });
