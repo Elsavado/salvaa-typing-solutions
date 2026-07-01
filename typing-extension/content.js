@@ -1,4 +1,7 @@
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// Safety Check: Only declare the sleep utility if it hasn't been defined in this session yet
+if (typeof window.sleep === 'undefined') {
+    window.sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function runAutoTyper() {
     console.log("Analyzing typing page architecture...");
@@ -8,7 +11,7 @@ async function runAutoTyper() {
     // ==========================================
     let textToType = "";
     
-    // Check Option A: Modern letter-by-letter span structures (e.g., typing.com)
+    // Check Option A: Modern letter-by-letter structures (e.g., typing.com)
     const activeLetters = document.querySelectorAll('.letter, .word span, .screen-reader-text');
     
     if (activeLetters.length > 0) {
@@ -29,13 +32,10 @@ async function runAutoTyper() {
     // ==========================================
     // 2. CHOOSE TARGET & SIMULATE FOCUS
     // ==========================================
-    // Check if there is a direct input/textarea area on screen
     let inputBox = document.querySelector('textarea[data-slot="textarea"], input[type="text"], textarea');
-    
-    // Fall back to active element or body if a direct text field doesn't exist
     const inputTarget = inputBox || document.activeElement || document.body;
     inputTarget.focus();
-    await sleep(500);
+    await window.sleep(500);
 
     // ==========================================
     // 3. CALIBRATE HUMAN CADENCE
@@ -84,7 +84,7 @@ async function runAutoTyper() {
             randomDelay += (calculatedBaseDelay * 0.15); 
         }
 
-        await sleep(randomDelay);
+        await window.sleep(randomDelay);
     }
 
     console.log(`Successfully completed typing block smoothly at an optimized ${chosenWPM} WPM baseline.`);
